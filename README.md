@@ -18,3 +18,13 @@ Python 3.6.8 or later with all requirements.txt dependencies installed, includin
 $ pip install -r requirements.txt
 ```
 
+### III. Data Preprocessing and Feature Selection
+There are three files about data preprocessing and feature selection
+* Feature_Selection_Function.py
+  * The file contain TFID and NGRAM function that will be used in the *Step2_Output_Result_main_code*
+
+* Preprocessing_Function.py
+* TFIDF_with_Preprocessing.py
+
+
+### IV. 
