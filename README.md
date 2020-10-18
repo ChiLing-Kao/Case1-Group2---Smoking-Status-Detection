@@ -20,12 +20,16 @@ $ pip install -r requirements.txt
 
 ### III. Data Preprocessing and Feature Selection
 There are three files about data preprocessing and feature selection
+
 * **Feature_Selection_Function.py**
-  * The file contain TFID and NGRAM function that will be used in the **Step2_Output_Result_main_code** and **Step1-4_CV_for_OvO_OvR_Multiclass**.
+  * The file contain TFID and NGRAM function that will be used in the **Step2_Output_Result_main_code.py** and **Step1-4_CV_for_OvO_OvR_Multiclass.py**.
+  
 * **Preprocessing_Function.py**
-  * The file contain 4 types of data preprocessing function that will be used in the **Step2_Output_Result_main_code** and **Step1-4_CV_for_OvO_OvR_Multiclass**..
+  * The file contain 4 types of data preprocessing function that will be used in the **Step2_Output_Result_main_code.py** and **Step1-4_CV_for_OvO_OvR_Multiclass.py**.
+  
 * **TFIDF_with_Preprocessing.py**
-  * The file data preprocessing and TFIDF code. It will output the numpy form data and will be input to the **Step1-1_CV_for_Decision_Tree**, **Step1-2_CV_for_Gradient_Boosting**, and **Step1-3_CV_for_Logistic_Regression**.
+  * The file data preprocessing and TFIDF code. It will output the numpy form data and will be input to the **Step1-1_CV_for_Decision_Tree.py**, **Step1-2_CV_for_Gradient_Boosting.py**, and **Step1-3_CV_for_Logistic_Regression.py**.
+  
 
 
 ### IV. 
