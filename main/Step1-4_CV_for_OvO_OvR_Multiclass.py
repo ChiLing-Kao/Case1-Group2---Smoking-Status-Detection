@@ -17,7 +17,7 @@ from sklearn import tree
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import GridSearchCV
-
+from sklearn.model_selection import KFold
 
 #3. Result
 from sklearn.metrics.classification import accuracy_score
@@ -85,12 +85,12 @@ all_data_vec = pd.DataFrame(NGRAM(all_data, rgram_range = (2,2)))
 #all_data_vec = pd.DataFrame(TFID(all_data))
 
 # (5) Split back to train and test
-X_train = pd.DataFrame(all_data_vec.iloc[:40])
-Y_train = all_data.iloc[0:40]['label'].astype(int)
+X_data = pd.DataFrame(all_data_vec.iloc[:40])
+Y_data = all_data.iloc[0:40]['label'].astype(int)
 X_test = pd.DataFrame(all_data_vec.iloc[40:])
 
 # (6) Input Train and Test Data
-train_a = pd.concat([X_train, Y_train], axis = 1)
+train_a = pd.concat([X_data, Y_data], axis = 1)
 train_a.to_csv('D:/Chi/Homework/data/Ngram_matrix.csv',index=False)
 
 test = X_test
@@ -106,23 +106,31 @@ DF_model = tree.DecisionTreeClassifier()
 
 
 #%%
-n = 100
-sample_size = int(len(train_a['label'])*0.025)
+n = 10
 Accuracy_1 = []
 Accuracy_2 = []
-Model_1 = np.zeros((n,sample_size))
+Model_1 = np.zeros((n,4))
 Accuracy_3 = []
-Model_2 = np.zeros((n,sample_size))
+Model_2 = np.zeros((n,4))
 Accuracy_4 = []
-Model_3 = np.zeros((n,sample_size))
-True_Ans =  np.zeros((n,sample_size))
+Model_3 = np.zeros((n,4))
+True_Ans =  np.zeros((n,4))
 
+n_fold = 10
+
+kf = KFold(n_splits=n_fold,shuffle=True)
+
+data = train_a
+
+for [train_index, test_index],k in zip(kf.split(data),range(10)):
+    print("TRAIN:", train_index, "TEST:", test_index)
+    print(k)
+    X_train, X_test = X_data.iloc[train_index], X_data.iloc[test_index]
+    y_train, y_test = Y_data.iloc[train_index], Y_data.iloc[test_index]   
     
-for j in range(n):
-    X_train, X_val, Y_train, Y_val = model_selection.train_test_split(train_a.drop('label', axis=1), train_a['label'], test_size = 0.025, random_state = j)
-    train = pd.concat([X_train, Y_train], axis = 1)
-    val = pd.concat([X_val, Y_val], axis = 1)
-         
+    train = pd.concat([X_train, y_train], axis = 1)
+    val = pd.concat([X_test, y_test], axis = 1)
+    
     '''Model1'''
     # 5-1. Machine Learning Multi Classificaton 1 vs 1
     #1. Data
@@ -152,7 +160,7 @@ for j in range(n):
     # 2. Models and Evaluation
     #Reference: https://github.com/SnehaVM/Medical-Text-Classification--MachineLearning/blob/master/ClassifyText.ipynb 
     # (1) Model
-    model = SVM_model
+    model = GB_model
     # (2) Predict 
     # (2-1) 1-1 Predict   
     # a. Current Smoker & Non Smoker
@@ -182,7 +190,7 @@ for j in range(n):
 
     # (2-1) Accuracy with Most number of Probability
     # a. Probility of Prediction for All Samples
-    prob = np.zeros((sample_size,4))
+    prob = np.zeros((4,4))
     
     prob[:,0] = Y_pred_1_prob[:,0] #1
     prob[:,1] = Y_pred_1_prob[:,1] #0
@@ -225,26 +233,10 @@ for j in range(n):
         else:
             multi_predict[i] = 2
 
-    Model_1[j,:] = multi_predict
+    Model_1[k,:] = multi_predict
     # d. Accuracy
     Accuracy_1.append(accuracy_score(val_label, multi_predict))
-    
-#    # (2-2) Accuracy with Most number of Label
-#    multiclass_pred = []
-#    for i in range(len(val_label)):
-#        predict = np.c_[Y_pred_1,Y_pred_2,Y_pred_3,Y_pred_4,Y_pred_5,Y_pred_6]
-#        if (predict[i]==1).sum() == 3:
-#            multiclass_pred.append(1)
-#        elif (predict[i]==0).sum() == 3:
-#            multiclass_pred.append(0)
-#        elif (predict[i]==-1).sum() == 3:
-#            multiclass_pred.append(-1)
-#        else:
-#            multiclass_pred.append(2)
-    
-#    Model_1[j,:] = multiclass_pred  
-#    Accuracy_2.append(accuracy_score(val_label, multiclass_pred))
-    
+            
     '''Model2'''
     # Machine Learning Multi Classificaton 1 vs all
     #(1) Let the label turn into 1 vs all data type
@@ -315,7 +307,7 @@ for j in range(n):
     
     # (2) Accuracy with Most number of Probability
     # a. Probility of Prediction for All Samples
-    prob = np.zeros((sample_size,4))
+    prob = np.zeros((4,4))
     
     prob[:,0] = Y_pred_1_1_prob[:,1] 
     prob[:,1] = Y_pred_2_1_prob[:,1] 
@@ -346,34 +338,35 @@ for j in range(n):
         else:
             multi_predict_1[i] = 2
 
-    Model_2[j,:] = multi_predict_1   
+    Model_2[k,:] = multi_predict_1   
     # d. Accuracy
     Accuracy_3.append(accuracy_score(val_label, multi_predict_1))
 
     '''Model3'''
     model = GB_model
-    model.fit(X_train, Y_train)
-    multi_predict_2 = model.predict(X_val)
-    Model_3[j,:] = multi_predict_2
-    True_Ans[j,:] = Y_val.values.flatten()
-    Accuracy_4.append(accuracy_score(Y_val, multi_predict_2))
+    model.fit(X_train, y_train)
+    multi_predict_2 = model.predict(X_test)
+    Model_3[k,:] = multi_predict_2
+    True_Ans[k,:] = val_label.values.flatten()
+    Accuracy_4.append(accuracy_score(val_label, multi_predict_2))
 
 
 print("Accuracy_1",np.mean(Accuracy_1))   
 print("Accuracy_3:",np.mean(Accuracy_3))   
 print("Accuracy_4:",np.mean(Accuracy_4))   
 
+
 #%%
 '''Ensemble'''
 
 Model_list = [Model_1,Model_2,Model_3]
 all_accuracy = [np.mean(Accuracy_1),np.mean(Accuracy_3),np.mean(Accuracy_4)]
-Voting_result = np.zeros((sample_size,4))
+Voting_result = np.zeros((4,4))
 Accuracy_voting = []
 for m in range(n):
-    Voting_result = np.zeros((sample_size,4))
+    Voting_result = np.zeros((4,4))
     for model in range(len(Model_list)):
-        for l in range(sample_size):            
+        for l in range(4):            
             if Model_list[model][m][l] == 1:
                 Voting_result[l][0] += 1
             elif Model_list[model][m][l] == 0:
@@ -384,7 +377,7 @@ for m in range(n):
                 Voting_result[l][3] += 1         
 
     Voting_predict = []
-    for i in range(sample_size):
+    for i in range(4):
         if (np.max(Voting_result[i,:]) != 1) :
             voting_label = np.where(Voting_result[i,:] == np.max(Voting_result[i,:]))[0][0]
             Voting_predict.append(voting_label)
@@ -392,7 +385,7 @@ for m in range(n):
             voting_label = Model_list[np.where(np.max(all_accuracy))[0][0]][m][l]
             Voting_predict.append(voting_label)
     
-    for j in range(sample_size):
+    for j in range(4):
         if (Voting_predict[j] == 0):
             Voting_predict[j] = 1
         elif (Voting_predict[j] == 1):
@@ -404,7 +397,7 @@ for m in range(n):
 
     Accuracy_voting.append(accuracy_score(True_Ans[m], Voting_predict))
 
-print("Accuracy_voting:",np.mean(Accuracy_voting))  
+print("Accuracy_voting:",np.mean(Accuracy_voting)) 
 
 #%% Grid Search
 
